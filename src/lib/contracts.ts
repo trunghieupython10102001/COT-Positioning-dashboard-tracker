@@ -1,0 +1,220 @@
+export type AssetClass = "metals" | "energy" | "fx";
+
+export type ReportType = "disaggregated" | "financial";
+
+export type ContractConfig = {
+  key: string;
+  name: string;
+  assetClass: AssetClass;
+  exchange: "COMEX" | "NYMEX" | "CME" | "ICE";
+  reportType: ReportType;
+  cftcMarketNames: string[];
+  tradingViewSymbol: string;
+  cotFuturesSymbol: string;
+};
+
+export const contracts: ContractConfig[] = [
+  {
+    key: "gold",
+    name: "Gold",
+    assetClass: "metals",
+    exchange: "COMEX",
+    reportType: "disaggregated",
+    cftcMarketNames: ["GOLD - COMMODITY EXCHANGE INC."],
+    tradingViewSymbol: "TVC:GOLD",
+    cotFuturesSymbol: "COMEX:GC1!",
+  },
+  {
+    key: "silver",
+    name: "Silver",
+    assetClass: "metals",
+    exchange: "COMEX",
+    reportType: "disaggregated",
+    cftcMarketNames: ["SILVER - COMMODITY EXCHANGE INC."],
+    tradingViewSymbol: "TVC:SILVER",
+    cotFuturesSymbol: "COMEX:SI1!",
+  },
+  {
+    key: "copper",
+    name: "Copper",
+    assetClass: "metals",
+    exchange: "COMEX",
+    reportType: "disaggregated",
+    cftcMarketNames: [
+      "COPPER-GRADE #1 - COMMODITY EXCHANGE INC.",
+      "COPPER- #1 - COMMODITY EXCHANGE INC.",
+    ],
+    tradingViewSymbol: "TVC:COPPER",
+    cotFuturesSymbol: "COMEX:HG1!",
+  },
+  {
+    key: "platinum",
+    name: "Platinum",
+    assetClass: "metals",
+    exchange: "NYMEX",
+    reportType: "disaggregated",
+    cftcMarketNames: ["PLATINUM - NEW YORK MERCANTILE EXCHANGE"],
+    tradingViewSymbol: "TVC:PLATINUM",
+    cotFuturesSymbol: "NYMEX:PL1!",
+  },
+  {
+    key: "palladium",
+    name: "Palladium",
+    assetClass: "metals",
+    exchange: "NYMEX",
+    reportType: "disaggregated",
+    cftcMarketNames: ["PALLADIUM - NEW YORK MERCANTILE EXCHANGE"],
+    tradingViewSymbol: "TVC:PALLADIUM",
+    cotFuturesSymbol: "NYMEX:PA1!",
+  },
+  {
+    key: "wti-crude-oil",
+    name: "WTI Crude Oil",
+    assetClass: "energy",
+    exchange: "NYMEX",
+    reportType: "disaggregated",
+    cftcMarketNames: [
+      "CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE",
+      "WTI FINANCIAL CRUDE OIL - NEW YORK MERCANTILE EXCHANGE",
+    ],
+    tradingViewSymbol: "TVC:USOIL",
+    cotFuturesSymbol: "NYMEX:CL1!",
+  },
+  {
+    key: "brent-crude-oil",
+    name: "Brent Crude Oil",
+    assetClass: "energy",
+    exchange: "ICE",
+    reportType: "disaggregated",
+    cftcMarketNames: [
+      "BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE",
+      "CRUDE OIL, LIGHT SWEET-WTI - ICE FUTURES EUROPE",
+    ],
+    tradingViewSymbol: "TVC:UKOIL",
+    cotFuturesSymbol: "ICEEUR:BRN1!",
+  },
+  {
+    key: "natural-gas",
+    name: "Natural Gas",
+    assetClass: "energy",
+    exchange: "NYMEX",
+    reportType: "disaggregated",
+    cftcMarketNames: ["NATURAL GAS - NEW YORK MERCANTILE EXCHANGE"],
+    tradingViewSymbol: "TVC:NATGAS",
+    cotFuturesSymbol: "NYMEX:NG1!",
+  },
+  {
+    key: "rbob-gasoline",
+    name: "RBOB Gasoline",
+    assetClass: "energy",
+    exchange: "NYMEX",
+    reportType: "disaggregated",
+    cftcMarketNames: [
+      "GASOLINE BLENDSTOCK (RBOB) - NEW YORK MERCANTILE EXCHANGE",
+      "GASOLINE BLENDSTOCK (RBOB)  - NEW YORK MERCANTILE EXCHANGE",
+      "GASOLINE RBOB - NEW YORK MERCANTILE EXCHANGE",
+    ],
+    tradingViewSymbol: "TVC:GASOLINE",
+    cotFuturesSymbol: "NYMEX:RB1!",
+  },
+  {
+    key: "heating-oil",
+    name: "Heating Oil",
+    assetClass: "energy",
+    exchange: "NYMEX",
+    reportType: "disaggregated",
+    cftcMarketNames: [
+      "#2 HEATING OIL, NY HARBOR-ULSD - NEW YORK MERCANTILE EXCHANGE",
+      "#2 HEATING OIL- NY HARBOR-ULSD - NEW YORK MERCANTILE EXCHANGE",
+    ],
+    tradingViewSymbol: "TVC:HEATOIL",
+    cotFuturesSymbol: "NYMEX:HO1!",
+  },
+  {
+    key: "euro-fx",
+    name: "Euro FX",
+    assetClass: "fx",
+    exchange: "CME",
+    reportType: "financial",
+    cftcMarketNames: ["EURO FX - CHICAGO MERCANTILE EXCHANGE"],
+    tradingViewSymbol: "FX:EURUSD",
+    cotFuturesSymbol: "CME:6E1!",
+  },
+  {
+    key: "british-pound",
+    name: "British Pound",
+    assetClass: "fx",
+    exchange: "CME",
+    reportType: "financial",
+    cftcMarketNames: [
+      "BRITISH POUND - CHICAGO MERCANTILE EXCHANGE",
+      "BRITISH POUND STERLING - CHICAGO MERCANTILE EXCHANGE",
+    ],
+    tradingViewSymbol: "FX:GBPUSD",
+    cotFuturesSymbol: "CME:6B1!",
+  },
+  {
+    key: "swiss-franc",
+    name: "Swiss Franc",
+    assetClass: "fx",
+    exchange: "CME",
+    reportType: "financial",
+    cftcMarketNames: ["SWISS FRANC - CHICAGO MERCANTILE EXCHANGE"],
+    tradingViewSymbol: "FX:USDCHF",
+    cotFuturesSymbol: "CME:6S1!",
+  },
+  {
+    key: "canadian-dollar",
+    name: "Canadian Dollar",
+    assetClass: "fx",
+    exchange: "CME",
+    reportType: "financial",
+    cftcMarketNames: ["CANADIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE"],
+    tradingViewSymbol: "FX:USDCAD",
+    cotFuturesSymbol: "CME:6C1!",
+  },
+  {
+    key: "japanese-yen",
+    name: "Japanese Yen",
+    assetClass: "fx",
+    exchange: "CME",
+    reportType: "financial",
+    cftcMarketNames: ["JAPANESE YEN - CHICAGO MERCANTILE EXCHANGE"],
+    tradingViewSymbol: "FX:USDJPY",
+    cotFuturesSymbol: "CME:6J1!",
+  },
+  {
+    key: "australian-dollar",
+    name: "Australian Dollar",
+    assetClass: "fx",
+    exchange: "CME",
+    reportType: "financial",
+    cftcMarketNames: ["AUSTRALIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE"],
+    tradingViewSymbol: "FX:AUDUSD",
+    cotFuturesSymbol: "CME:6A1!",
+  },
+  {
+    key: "new-zealand-dollar",
+    name: "New Zealand Dollar",
+    assetClass: "fx",
+    exchange: "CME",
+    reportType: "financial",
+    cftcMarketNames: ["NEW ZEALAND DOLLAR - CHICAGO MERCANTILE EXCHANGE"],
+    tradingViewSymbol: "FX:NZDUSD",
+    cotFuturesSymbol: "CME:6N1!",
+  },
+  {
+    key: "mexican-peso",
+    name: "Mexican Peso",
+    assetClass: "fx",
+    exchange: "CME",
+    reportType: "financial",
+    cftcMarketNames: ["MEXICAN PESO - CHICAGO MERCANTILE EXCHANGE"],
+    tradingViewSymbol: "FX:USDMXN",
+    cotFuturesSymbol: "CME:6M1!",
+  },
+];
+
+export function getContract(key: string) {
+  return contracts.find((contract) => contract.key === key);
+}

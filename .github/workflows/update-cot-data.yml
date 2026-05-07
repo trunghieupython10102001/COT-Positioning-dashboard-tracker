@@ -1,0 +1,49 @@
+name: Update COT Data
+
+on:
+  # CFTC publishes new COT reports every Friday ~3:30 PM ET (21:30 UTC).
+  # Run at 22:00 UTC Friday to give the CFTC server time to publish.
+  schedule:
+    - cron: "0 22 * * 5"
+  # Also allow manual runs from the Actions tab.
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download & normalize CFTC data
+        run: npm run import:cftc
+
+      - name: Commit updated records if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/generated/cot-records.json
+          if git diff --cached --quiet; then
+            echo "No new COT data — nothing to commit."
+          else
+            REPORT_DATE=$(node -e "
+              const r = require('./src/generated/cot-records.json');
+              const dates = r.map(x => x.reportDate).sort();
+              console.log(dates.at(-1));
+            ")
+            git commit -m "chore: update COT data through ${REPORT_DATE}"
+            git push
+            echo "Pushed updated COT records (latest report: ${REPORT_DATE})"
+          fi
