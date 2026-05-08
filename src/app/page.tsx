@@ -110,7 +110,7 @@ export default function Home() {
                 </div>
                 <div className="mt-6 grid grid-cols-3 gap-3 text-sm">
                   <div className="rounded-2xl bg-slate-50 p-3 dark:bg-white/[0.03]">
-                    <p className="text-xs text-slate-400 dark:text-slate-500">Spec net</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500">Net contracts</p>
                     <p className="mt-1 font-mono font-semibold text-slate-900 dark:text-white">{formatNumber(metric!.specNet)}</p>
                   </div>
                   <div className="rounded-2xl bg-slate-50 p-3 dark:bg-white/[0.03]">

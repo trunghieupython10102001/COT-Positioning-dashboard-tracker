@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { CotIndexChart } from "@/components/CotCharts";
+import { CotIndexChart, NetPositionChart } from "@/components/CotCharts";
 import { PriceChart } from "@/components/PriceChart";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { buildMetrics, formatNumber, formatPct } from "@/lib/analytics";
@@ -145,7 +145,7 @@ export function ContractDashboard({ contract, group, records, priceCandles }: Co
               </Link>
             </div>
             <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-300/20 dark:bg-amber-300/10">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-600 dark:text-amber-200">Selected net</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-600 dark:text-amber-200">Net contracts</p>
               <p className={`mt-2 font-mono text-3xl font-semibold ${netTone}`}>{formatNumber(latest.selectedNet)}</p>
             </div>
           </div>
@@ -155,7 +155,7 @@ export function ContractDashboard({ contract, group, records, priceCandles }: Co
         <div className="mt-6 grid gap-4 md:grid-cols-4">
           {[
             ["Report date", latest.reportDate],
-            ["Net position", formatNumber(latest.selectedNet)],
+            ["Net contracts", formatNumber(latest.selectedNet)],
             ["Net / open interest", formatPct(latest.selectedNetPctOi)],
             ["156w z-score", latest.zScore.toString()],
           ].map(([label, value]) => (
@@ -224,6 +224,20 @@ export function ContractDashboard({ contract, group, records, priceCandles }: Co
         {/* Price chart */}
         <section className="mt-6 min-w-0">
           <PriceChart candles={priceCandles} from={cutoff} to={cutoffTo} height={520} />
+        </section>
+
+        {/* Net contracts chart */}
+        <section className="mt-6 min-w-0">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-600 dark:text-cyan-300">Net number of contracts</p>
+              <h2 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">Net Positioning Contracts</h2>
+            </div>
+            <p className="text-sm text-slate-400 dark:text-slate-500">
+              Positive = net long contracts · Negative = net short contracts
+            </p>
+          </div>
+          <NetPositionChart data={filterMetrics(metrics)} />
         </section>
 
         {/* COT Index panels */}

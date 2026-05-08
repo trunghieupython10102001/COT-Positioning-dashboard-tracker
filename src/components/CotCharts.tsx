@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import {
   Area,
@@ -30,10 +29,8 @@ type CotIndexChartProps = {
 
 export function CotIndexChart({ data, label, color, thresholdLow = 10, thresholdHigh = 90 }: CotIndexChartProps) {
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
 
-  const isDark = !mounted || resolvedTheme === "dark";
+  const isDark = resolvedTheme !== "light";
   const gridColor = isDark ? "#1e293b" : "#e2e8f0";
   const axisColor = isDark ? "#64748b" : "#94a3b8";
   const tooltipBg = isDark ? "#020617" : "#ffffff";
@@ -98,8 +95,17 @@ export function CotIndexChart({ data, label, color, thresholdLow = 10, threshold
 }
 
 export function NetPositionChart({ data }: { data: CotMetric[] }) {
+  const { resolvedTheme } = useTheme();
+
+  const isDark = resolvedTheme !== "light";
+  const gridColor = isDark ? "#1e293b" : "#e2e8f0";
+  const axisColor = isDark ? "#64748b" : "#94a3b8";
+  const tooltipBg = isDark ? "#020617" : "#ffffff";
+  const tooltipBorder = isDark ? "#334155" : "#e2e8f0";
+  const tooltipFg = isDark ? "#f8fafc" : "#0f172a";
+
   return (
-    <div className="h-[26rem] w-full min-w-0 rounded-3xl border border-white/10 bg-slate-950/80 p-4 shadow-2xl shadow-black/25 backdrop-blur-xl">
+    <div className="h-[26rem] w-full min-w-0 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition-colors duration-300 dark:border-white/10 dark:bg-slate-950/80 dark:shadow-2xl dark:shadow-black/25">
       <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
         <AreaChart data={data}>
           <defs>
@@ -108,14 +114,14 @@ export function NetPositionChart({ data }: { data: CotMetric[] }) {
               <stop offset="95%" stopColor="#38bdf8" stopOpacity={0.05} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" vertical={false} />
-          <XAxis dataKey="reportDate" stroke="#64748b" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
-          <YAxis stroke="#64748b" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
+          <CartesianGrid stroke={gridColor} strokeDasharray="3 3" vertical={false} />
+          <XAxis dataKey="reportDate" stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} tickLine={false} axisLine={false} />
+          <YAxis stroke={axisColor} tick={{ fontSize: 12, fill: axisColor }} tickLine={false} axisLine={false} />
           <Tooltip
             cursor={{ stroke: "#f59e0b", strokeWidth: 1 }}
-            contentStyle={{ background: "#020617", border: "1px solid #334155", borderRadius: 16, color: "#f8fafc" }}
+            contentStyle={{ background: tooltipBg, border: `1px solid ${tooltipBorder}`, borderRadius: 16, color: tooltipFg }}
           />
-          <Area dataKey="selectedNet" name="Net Position" stroke="#38bdf8" strokeWidth={2} fill="url(#net)" />
+          <Area dataKey="selectedNet" name="Net Contracts" stroke="#38bdf8" strokeWidth={2} fill="url(#net)" />
         </AreaChart>
       </ResponsiveContainer>
     </div>
