@@ -44,12 +44,12 @@ export function metricNet(record: CotRecord, group: Exclude<TraderGroup, "all">)
   return record.commercialLong - record.commercialShort;
 }
 
-export function buildMetrics(records: CotRecord[], group: Exclude<TraderGroup, "all">) {
+export function buildMetrics(records: CotRecord[], group: Exclude<TraderGroup, "all">, lookbackWeeks: number = 156) {
   return records.map((record, index) => {
     const selectedNet = metricNet(record, group);
     const prior = records[index - 1];
     const priorNet = prior ? metricNet(prior, group) : selectedNet;
-    const window = records.slice(Math.max(index - 155, 0), index + 1).map((item) => metricNet(item, group));
+    const window = records.slice(Math.max(index - (lookbackWeeks - 1), 0), index + 1).map((item) => metricNet(item, group));
 
     return {
       ...record,

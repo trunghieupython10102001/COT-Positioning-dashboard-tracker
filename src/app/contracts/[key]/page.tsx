@@ -3,6 +3,7 @@ import { ContractDashboard } from "@/components/ContractDashboard";
 import { buildMetrics } from "@/lib/analytics";
 import { getContractRecords, hasCotRecords, isUsingGeneratedCotData } from "@/lib/cot-data";
 import { contracts, getContract } from "@/lib/contracts";
+import { getPriceCandles } from "@/lib/price-data";
 
 type ContractPageProps = {
   params: Promise<{ key: string }>;
@@ -22,11 +23,12 @@ export default async function ContractPage({ params, searchParams }: ContractPag
 
   const group = query.group === "commercials" ? "commercials" : "speculators";
   const records = getContractRecords(contract.key);
-  const specMetrics = buildMetrics(records, "speculators");
-  const largeSpecMetrics = buildMetrics(records, "large-speculators");
-  const commMetrics = buildMetrics(records, "commercials");
-  const metrics = group === "speculators" ? specMetrics : commMetrics;
-  if (!metrics.at(-1)) notFound();
 
-  return <ContractDashboard contract={contract} group={group} metrics={metrics} specMetrics={specMetrics} largeSpecMetrics={largeSpecMetrics} commMetrics={commMetrics} />;
+  // Quick check that there is data before rendering the client component.
+  const probe = buildMetrics(records, group);
+  if (!probe.at(-1)) notFound();
+
+  const priceCandles = getPriceCandles(contract.key);
+
+  return <ContractDashboard contract={contract} group={group} records={records} priceCandles={priceCandles} />;
 }

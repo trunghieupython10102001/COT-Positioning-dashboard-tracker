@@ -1,35 +1,51 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { CotIndexChart } from "@/components/CotCharts";
+import { PriceChart } from "@/components/PriceChart";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { TradingViewChart } from "@/components/TradingViewChart";
-import { CotMetric, formatNumber, formatPct } from "@/lib/analytics";
+import { buildMetrics, formatNumber, formatPct } from "@/lib/analytics";
 import { ContractConfig } from "@/lib/contracts";
+import type { CotRecord } from "@/lib/cot-data";
+import type { PriceCandle } from "@/lib/price-data";
 import {
   DashboardTimeframe,
   dashboardTimeframes,
   cotCutoffFor,
-  tradingViewConfigFor,
 } from "@/lib/timeframes";
 
 type ContractDashboardProps = {
   contract: ContractConfig;
   group: "speculators" | "commercials";
-  metrics: CotMetric[];
-  specMetrics: CotMetric[];
-  largeSpecMetrics: CotMetric[];
-  commMetrics: CotMetric[];
+  records: CotRecord[];
+  priceCandles: PriceCandle[];
 };
 
 const COT_DATA_START = "2010-01-01";
 
-export function ContractDashboard({ contract, group, metrics, specMetrics, largeSpecMetrics, commMetrics }: ContractDashboardProps) {
+const LOOKBACK_PRESETS = [
+  { label: "13W", weeks: 13, hint: "3M" },
+  { label: "26W", weeks: 26, hint: "6M" },
+  { label: "52W", weeks: 52, hint: "1Y" },
+  { label: "156W", weeks: 156, hint: "3Y" },
+] as const;
+
+export function ContractDashboard({ contract, group, records, priceCandles }: ContractDashboardProps) {
   const [timeframe, setTimeframe] = useState<DashboardTimeframe>("1y");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
 
+  const [lookback, setLookback] = useState(156);
+  const [isCustomLookback, setIsCustomLookback] = useState(false);
+  const [customLookbackText, setCustomLookbackText] = useState("");
+
+  // Compute metrics client-side so any lookback value is supported without a server round-trip.
+  const specMetrics = useMemo(() => buildMetrics(records, "speculators", lookback), [records, lookback]);
+  const largeSpecMetrics = useMemo(() => buildMetrics(records, "large-speculators", lookback), [records, lookback]);
+  const commMetrics = useMemo(() => buildMetrics(records, "commercials", lookback), [records, lookback]);
+
+  const metrics = group === "speculators" ? specMetrics : commMetrics;
   const latest = metrics.at(-1)!;
 
   function handleTimeframeChange(value: DashboardTimeframe) {
@@ -42,10 +58,26 @@ export function ContractDashboard({ contract, group, metrics, specMetrics, large
     setTimeframe(value);
   }
 
+  function handleLookbackPreset(weeks: number) {
+    setLookback(weeks);
+    setIsCustomLookback(false);
+  }
+
+  function handleLookbackCustom() {
+    setIsCustomLookback(true);
+    setCustomLookbackText(lookback.toString());
+  }
+
+  function handleLookbackInput(raw: string) {
+    setCustomLookbackText(raw);
+    const n = parseInt(raw, 10);
+    if (n >= 4 && n <= 520) setLookback(n);
+  }
+
   const cutoff = cotCutoffFor(timeframe, latest.reportDate, customFrom || undefined);
   const cutoffTo = timeframe === "custom" ? (customTo || undefined) : undefined;
 
-  function filterMetrics(data: CotMetric[]) {
+  function filterMetrics(data: typeof specMetrics) {
     return data.filter(
       (m) => (!cutoff || m.reportDate >= cutoff) && (!cutoffTo || m.reportDate <= cutoffTo),
     );
@@ -54,13 +86,6 @@ export function ContractDashboard({ contract, group, metrics, specMetrics, large
   const visibleSpecMetrics = filterMetrics(specMetrics);
   const visibleLargeSpecMetrics = filterMetrics(largeSpecMetrics);
   const visibleCommMetrics = filterMetrics(commMetrics);
-
-  const tvConfig = tradingViewConfigFor(
-    timeframe,
-    latest.reportDate,
-    customFrom || undefined,
-    customTo || undefined,
-  );
 
   const specLabel = contract.reportType === "financial" ? "Managed Money COT Index (Leveraged Funds)" : "Managed Money COT Index";
   const largeSpecLabel = contract.reportType === "financial" ? "Large Speculator COT Index (Leveraged + Other)" : "Large Speculator COT Index (MM + Other Rept)";
@@ -98,8 +123,8 @@ export function ContractDashboard({ contract, group, metrics, specMetrics, large
               {contract.name}
             </h1>
             <p className="mt-4 max-w-3xl text-slate-500 dark:text-slate-300">
-              Price chart is live/current via TradingView. COT positioning is weekly and delayed.
-              The selected timeframe below controls both the price chart range and COT chart range.
+              Price chart shows historical OHLCV data. COT positioning is weekly and delayed.
+              The selected timeframe controls both the price chart and COT chart range.
             </p>
           </div>
 
@@ -146,7 +171,7 @@ export function ContractDashboard({ contract, group, metrics, specMetrics, large
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="shrink-0">
               <p className="text-sm font-semibold text-slate-900 dark:text-white">Synced timeframe</p>
-              <p className="text-sm text-slate-400 dark:text-slate-400">Applies to TradingView range and COT chart history.</p>
+              <p className="text-sm text-slate-400 dark:text-slate-400">Applies to both the price chart and COT chart history.</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {dashboardTimeframes.map((item) => (
@@ -198,25 +223,70 @@ export function ContractDashboard({ contract, group, metrics, specMetrics, large
 
         {/* Price chart */}
         <section className="mt-6 min-w-0">
-          <TradingViewChart
-            symbol={contract.tradingViewSymbol}
-            range={tvConfig.range}
-            fromTimestamp={tvConfig.from}
-            toTimestamp={tvConfig.to}
-          />
+          <PriceChart candles={priceCandles} from={cutoff} to={cutoffTo} height={520} />
         </section>
 
         {/* COT Index panels */}
         <section className="mt-6">
-          <div className="mb-4 flex items-end justify-between gap-4">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-600 dark:text-cyan-300">Contrarian signal</p>
               <h2 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">COT Index (0–100)</h2>
             </div>
-            <p className="hidden text-sm text-slate-400 dark:text-slate-500 sm:block">
-              Green ≤ 10 = extreme short · Red ≥ 90 = extreme long
-            </p>
+
+            {/* Lookback selector */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">Lookback</span>
+              <div className="flex flex-wrap items-center gap-1 rounded-full border border-slate-200 bg-slate-50 p-1 text-xs font-semibold dark:border-white/10 dark:bg-slate-900">
+                {LOOKBACK_PRESETS.map(({ label, weeks, hint }) => (
+                  <button
+                    key={weeks}
+                    type="button"
+                    title={hint}
+                    onClick={() => handleLookbackPreset(weeks)}
+                    className={`cursor-pointer rounded-full px-3 py-1 transition-colors duration-200 ${
+                      !isCustomLookback && lookback === weeks
+                        ? "bg-cyan-400 text-slate-950 dark:bg-cyan-300 dark:text-slate-950"
+                        : "text-slate-500 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-white/10"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={handleLookbackCustom}
+                  className={`cursor-pointer rounded-full px-3 py-1 transition-colors duration-200 ${
+                    isCustomLookback
+                      ? "bg-cyan-400 text-slate-950 dark:bg-cyan-300 dark:text-slate-950"
+                      : "text-slate-500 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-white/10"
+                  }`}
+                >
+                  Custom
+                </button>
+              </div>
+
+              {isCustomLookback && (
+                <div className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-1.5 dark:border-white/10 dark:bg-white/[0.04]">
+                  <input
+                    type="number"
+                    min={4}
+                    max={520}
+                    value={customLookbackText}
+                    onChange={(e) => handleLookbackInput(e.target.value)}
+                    placeholder="52"
+                    className="w-14 bg-transparent font-mono text-xs text-slate-900 focus:outline-none dark:text-white"
+                  />
+                  <span className="text-xs text-slate-400 dark:text-slate-500">weeks</span>
+                </div>
+              )}
+
+              <span className="hidden text-xs text-slate-400 dark:text-slate-500 sm:inline">
+                · Green ≤ 10 = extreme short · Red ≥ 90 = extreme long
+              </span>
+            </div>
           </div>
+
           <div className="grid gap-4">
             <CotIndexChart data={visibleLargeSpecMetrics} label={largeSpecLabel} color="#3b82f6" />
             <CotIndexChart data={visibleSpecMetrics} label={specLabel} color="#a855f7" />

@@ -11,6 +11,7 @@ export type ContractConfig = {
   cftcMarketNames: string[];
   tradingViewSymbol: string;
   cotFuturesSymbol: string;
+  yahooFinanceSymbol: string;
 };
 
 export const contracts: ContractConfig[] = [
@@ -23,6 +24,7 @@ export const contracts: ContractConfig[] = [
     cftcMarketNames: ["GOLD - COMMODITY EXCHANGE INC."],
     tradingViewSymbol: "TVC:GOLD",
     cotFuturesSymbol: "COMEX:GC1!",
+    yahooFinanceSymbol: "GC=F",
   },
   {
     key: "silver",
@@ -33,6 +35,7 @@ export const contracts: ContractConfig[] = [
     cftcMarketNames: ["SILVER - COMMODITY EXCHANGE INC."],
     tradingViewSymbol: "TVC:SILVER",
     cotFuturesSymbol: "COMEX:SI1!",
+    yahooFinanceSymbol: "SI=F",
   },
   {
     key: "copper",
@@ -46,6 +49,7 @@ export const contracts: ContractConfig[] = [
     ],
     tradingViewSymbol: "TVC:COPPER",
     cotFuturesSymbol: "COMEX:HG1!",
+    yahooFinanceSymbol: "HG=F",
   },
   {
     key: "platinum",
@@ -56,6 +60,7 @@ export const contracts: ContractConfig[] = [
     cftcMarketNames: ["PLATINUM - NEW YORK MERCANTILE EXCHANGE"],
     tradingViewSymbol: "TVC:PLATINUM",
     cotFuturesSymbol: "NYMEX:PL1!",
+    yahooFinanceSymbol: "PL=F",
   },
   {
     key: "palladium",
@@ -66,6 +71,7 @@ export const contracts: ContractConfig[] = [
     cftcMarketNames: ["PALLADIUM - NEW YORK MERCANTILE EXCHANGE"],
     tradingViewSymbol: "TVC:PALLADIUM",
     cotFuturesSymbol: "NYMEX:PA1!",
+    yahooFinanceSymbol: "PA=F",
   },
   {
     key: "wti-crude-oil",
@@ -79,6 +85,7 @@ export const contracts: ContractConfig[] = [
     ],
     tradingViewSymbol: "TVC:USOIL",
     cotFuturesSymbol: "NYMEX:CL1!",
+    yahooFinanceSymbol: "CL=F",
   },
   {
     key: "brent-crude-oil",
@@ -92,6 +99,7 @@ export const contracts: ContractConfig[] = [
     ],
     tradingViewSymbol: "TVC:UKOIL",
     cotFuturesSymbol: "ICEEUR:BRN1!",
+    yahooFinanceSymbol: "BZ=F",
   },
   {
     key: "natural-gas",
@@ -102,6 +110,7 @@ export const contracts: ContractConfig[] = [
     cftcMarketNames: ["NATURAL GAS - NEW YORK MERCANTILE EXCHANGE"],
     tradingViewSymbol: "TVC:NATGAS",
     cotFuturesSymbol: "NYMEX:NG1!",
+    yahooFinanceSymbol: "NG=F",
   },
   {
     key: "rbob-gasoline",
@@ -116,6 +125,7 @@ export const contracts: ContractConfig[] = [
     ],
     tradingViewSymbol: "TVC:GASOLINE",
     cotFuturesSymbol: "NYMEX:RB1!",
+    yahooFinanceSymbol: "RB=F",
   },
   {
     key: "heating-oil",
@@ -129,6 +139,7 @@ export const contracts: ContractConfig[] = [
     ],
     tradingViewSymbol: "TVC:HEATOIL",
     cotFuturesSymbol: "NYMEX:HO1!",
+    yahooFinanceSymbol: "HO=F",
   },
   {
     key: "euro-fx",
@@ -139,6 +150,7 @@ export const contracts: ContractConfig[] = [
     cftcMarketNames: ["EURO FX - CHICAGO MERCANTILE EXCHANGE"],
     tradingViewSymbol: "FX:EURUSD",
     cotFuturesSymbol: "CME:6E1!",
+    yahooFinanceSymbol: "EURUSD=X",
   },
   {
     key: "british-pound",
@@ -152,6 +164,7 @@ export const contracts: ContractConfig[] = [
     ],
     tradingViewSymbol: "FX:GBPUSD",
     cotFuturesSymbol: "CME:6B1!",
+    yahooFinanceSymbol: "GBPUSD=X",
   },
   {
     key: "swiss-franc",
@@ -162,6 +175,7 @@ export const contracts: ContractConfig[] = [
     cftcMarketNames: ["SWISS FRANC - CHICAGO MERCANTILE EXCHANGE"],
     tradingViewSymbol: "FX:USDCHF",
     cotFuturesSymbol: "CME:6S1!",
+    yahooFinanceSymbol: "USDCHF=X",
   },
   {
     key: "canadian-dollar",
@@ -172,6 +186,7 @@ export const contracts: ContractConfig[] = [
     cftcMarketNames: ["CANADIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE"],
     tradingViewSymbol: "FX:USDCAD",
     cotFuturesSymbol: "CME:6C1!",
+    yahooFinanceSymbol: "USDCAD=X",
   },
   {
     key: "japanese-yen",
@@ -182,6 +197,7 @@ export const contracts: ContractConfig[] = [
     cftcMarketNames: ["JAPANESE YEN - CHICAGO MERCANTILE EXCHANGE"],
     tradingViewSymbol: "FX:USDJPY",
     cotFuturesSymbol: "CME:6J1!",
+    yahooFinanceSymbol: "USDJPY=X",
   },
   {
     key: "australian-dollar",
@@ -192,6 +208,7 @@ export const contracts: ContractConfig[] = [
     cftcMarketNames: ["AUSTRALIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE"],
     tradingViewSymbol: "FX:AUDUSD",
     cotFuturesSymbol: "CME:6A1!",
+    yahooFinanceSymbol: "AUDUSD=X",
   },
   {
     key: "new-zealand-dollar",
@@ -202,6 +219,7 @@ export const contracts: ContractConfig[] = [
     cftcMarketNames: ["NEW ZEALAND DOLLAR - CHICAGO MERCANTILE EXCHANGE"],
     tradingViewSymbol: "FX:NZDUSD",
     cotFuturesSymbol: "CME:6N1!",
+    yahooFinanceSymbol: "NZDUSD=X",
   },
   {
     key: "mexican-peso",
@@ -212,6 +230,7 @@ export const contracts: ContractConfig[] = [
     cftcMarketNames: ["MEXICAN PESO - CHICAGO MERCANTILE EXCHANGE"],
     tradingViewSymbol: "FX:USDMXN",
     cotFuturesSymbol: "CME:6M1!",
+    yahooFinanceSymbol: "USDMXN=X",
   },
 ];
 
