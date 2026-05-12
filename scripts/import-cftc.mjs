@@ -285,14 +285,24 @@ function normalizePositionalRecord(row, contract) {
     };
   }
 
+  const specLong = numericField(row, 13);
+  const specShort = numericField(row, 14);
+  const otherReptLong = numericField(row, 16);
+  const otherReptShort = numericField(row, 17);
+  const shouldUseOtherReptAsSpecProxy =
+    contract.key === "wti-crude-oil" &&
+    specLong === 0 &&
+    specShort === 0 &&
+    (otherReptLong !== 0 || otherReptShort !== 0);
+
   return {
     contractKey: contract.key,
     reportDate: row[2] ?? "",
     openInterest: numericField(row, 7),
-    specLong: numericField(row, 13),
-    specShort: numericField(row, 14),
-    otherReptLong: numericField(row, 16),
-    otherReptShort: numericField(row, 17),
+    specLong: shouldUseOtherReptAsSpecProxy ? otherReptLong : specLong,
+    specShort: shouldUseOtherReptAsSpecProxy ? otherReptShort : specShort,
+    otherReptLong,
+    otherReptShort,
     commercialLong: numericField(row, 8),
     commercialShort: numericField(row, 9),
     nonReportableLong: numericField(row, 21),
@@ -322,14 +332,33 @@ async function normalizeFiles(outputDir) {
         if (!contract) continue;
 
         const record = normalizeRecord(row, contract);
+        if (
+          record.contractKey === "wti-crude-oil" &&
+          record.specLong === 0 &&
+          record.specShort === 0 &&
+          (record.otherReptLong !== 0 || record.otherReptShort !== 0)
+        ) {
+          record.specLong = record.otherReptLong;
+          record.specShort = record.otherReptShort;
+        }
         if (record.reportDate && record.openInterest > 0) normalized.push(record);
       }
     }
   }
 
-  const deduped = Array.from(
-    new Map(normalized.map((record) => [`${record.contractKey}:${record.reportDate}`, record])).values(),
-  );
+  const byContractDate = new Map();
+  for (const record of normalized) {
+    const key = `${record.contractKey}:${record.reportDate}`;
+    const existing = byContractDate.get(key);
+    const recordHasSpec = record.specLong !== 0 || record.specShort !== 0;
+    const existingHasSpec = existing && (existing.specLong !== 0 || existing.specShort !== 0);
+
+    if (!existing || (recordHasSpec && !existingHasSpec)) {
+      byContractDate.set(key, record);
+    }
+  }
+
+  const deduped = Array.from(byContractDate.values());
 
   deduped.sort((a, b) =>
     a.contractKey === b.contractKey
