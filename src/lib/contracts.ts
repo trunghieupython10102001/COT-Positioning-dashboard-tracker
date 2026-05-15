@@ -81,6 +81,7 @@ export const contracts: ContractConfig[] = [
     reportType: "disaggregated",
     cftcMarketNames: [
       "CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE",
+      "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE",
       "WTI FINANCIAL CRUDE OIL - NEW YORK MERCANTILE EXCHANGE",
     ],
     tradingViewSymbol: "TVC:USOIL",
@@ -95,6 +96,7 @@ export const contracts: ContractConfig[] = [
     reportType: "disaggregated",
     cftcMarketNames: [
       "BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE",
+      "BRENT LAST DAY - NEW YORK MERCANTILE EXCHANGE",
       "CRUDE OIL, LIGHT SWEET-WTI - ICE FUTURES EUROPE",
     ],
     tradingViewSymbol: "TVC:UKOIL",
@@ -107,7 +109,10 @@ export const contracts: ContractConfig[] = [
     assetClass: "energy",
     exchange: "NYMEX",
     reportType: "disaggregated",
-    cftcMarketNames: ["NATURAL GAS - NEW YORK MERCANTILE EXCHANGE"],
+    cftcMarketNames: [
+      "NATURAL GAS - NEW YORK MERCANTILE EXCHANGE",
+      "NAT GAS NYME - NEW YORK MERCANTILE EXCHANGE",
+    ],
     tradingViewSymbol: "TVC:NATGAS",
     cotFuturesSymbol: "NYMEX:NG1!",
     yahooFinanceSymbol: "NG=F",
@@ -136,6 +141,7 @@ export const contracts: ContractConfig[] = [
     cftcMarketNames: [
       "#2 HEATING OIL, NY HARBOR-ULSD - NEW YORK MERCANTILE EXCHANGE",
       "#2 HEATING OIL- NY HARBOR-ULSD - NEW YORK MERCANTILE EXCHANGE",
+      "NY HARBOR ULSD - NEW YORK MERCANTILE EXCHANGE",
     ],
     tradingViewSymbol: "TVC:HEATOIL",
     cotFuturesSymbol: "NYMEX:HO1!",

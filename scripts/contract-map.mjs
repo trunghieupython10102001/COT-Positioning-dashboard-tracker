@@ -37,6 +37,7 @@ export const contracts = [
     reportType: "disaggregated",
     names: [
       "CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE",
+      "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE",
       "WTI FINANCIAL CRUDE OIL - NEW YORK MERCANTILE EXCHANGE",
     ],
     yahooFinanceSymbol: "CL=F",
@@ -46,6 +47,7 @@ export const contracts = [
     reportType: "disaggregated",
     names: [
       "BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE",
+      "BRENT LAST DAY - NEW YORK MERCANTILE EXCHANGE",
       "CRUDE OIL, LIGHT SWEET-WTI - ICE FUTURES EUROPE",
     ],
     yahooFinanceSymbol: "BZ=F",
@@ -53,7 +55,10 @@ export const contracts = [
   {
     key: "natural-gas",
     reportType: "disaggregated",
-    names: ["NATURAL GAS - NEW YORK MERCANTILE EXCHANGE"],
+    names: [
+      "NATURAL GAS - NEW YORK MERCANTILE EXCHANGE",
+      "NAT GAS NYME - NEW YORK MERCANTILE EXCHANGE",
+    ],
     yahooFinanceSymbol: "NG=F",
   },
   {
@@ -72,6 +77,7 @@ export const contracts = [
     names: [
       "#2 HEATING OIL, NY HARBOR-ULSD - NEW YORK MERCANTILE EXCHANGE",
       "#2 HEATING OIL- NY HARBOR-ULSD - NEW YORK MERCANTILE EXCHANGE",
+      "NY HARBOR ULSD - NEW YORK MERCANTILE EXCHANGE",
     ],
     yahooFinanceSymbol: "HO=F",
   },
