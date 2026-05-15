@@ -31,23 +31,16 @@ async function downloadSource(source) {
   const errors = [];
 
   for (const url of source.urls) {
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 COT-Dashboard/1.0",
-        Accept: "text/plain,application/zip,*/*",
-      },
-    });
-
-    if (response.ok) {
-      return {
-        url,
-        contentType: response.headers.get("content-type") ?? "",
-        buffer: Buffer.from(await response.arrayBuffer()),
-      };
+    try {
+      const tmpFile = path.join(process.cwd(), "data", "raw-cftc", `_tmp_${source.name}`);
+      await downloadWithCurl(url, tmpFile);
+      const buffer = await readFile(tmpFile);
+      await deleteIfExists(tmpFile);
+      const isZip = buffer[0] === 0x50 && buffer[1] === 0x4b;
+      return { url, contentType: isZip ? "application/zip" : "text/plain", buffer };
+    } catch (err) {
+      errors.push(`${url}: ${err.message}`);
     }
-
-    errors.push(`${url}: ${response.status} ${response.statusText}`);
   }
 
   throw new Error(`Failed to download ${source.name}: ${errors.join("; ")}`);
