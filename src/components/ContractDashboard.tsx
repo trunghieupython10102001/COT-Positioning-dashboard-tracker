@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { CotIndexChart, NetPositionChart } from "@/components/CotCharts";
+import { useMemo, useRef, useState } from "react";
+import { CotIndexChart, NetPositionChart, PctOiChart } from "@/components/CotCharts";
 import { PriceChart } from "@/components/PriceChart";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { buildMetrics, formatNumber, formatPct } from "@/lib/analytics";
@@ -39,6 +39,8 @@ export function ContractDashboard({ contract, group, records, priceCandles }: Co
   const [lookback, setLookback] = useState(156);
   const [isCustomLookback, setIsCustomLookback] = useState(false);
   const [customLookbackText, setCustomLookbackText] = useState("");
+  const [chartRange, setChartRange] = useState<{ from: string; to: string } | null>(null);
+  const rangeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Compute metrics client-side so any lookback value is supported without a server round-trip.
   const specMetrics = useMemo(() => buildMetrics(records, "speculators", lookback), [records, lookback]);
@@ -49,6 +51,7 @@ export function ContractDashboard({ contract, group, records, priceCandles }: Co
   const latest = metrics.at(-1)!;
 
   function handleTimeframeChange(value: DashboardTimeframe) {
+    setChartRange(null);
     if (value === "custom" && !customFrom) {
       const d = new Date(`${latest.reportDate}T00:00:00.000Z`);
       d.setUTCFullYear(d.getUTCFullYear() - 1);
@@ -77,9 +80,14 @@ export function ContractDashboard({ contract, group, records, priceCandles }: Co
   const cutoff = cotCutoffFor(timeframe, latest.reportDate, customFrom || undefined);
   const cutoffTo = timeframe === "custom" ? (customTo || undefined) : undefined;
 
+  // chartRange.from tracks the price chart's actual left edge for scroll-sync.
+  // effectiveTo always comes from cutoffTo so the right bound stays stable.
+  const effectiveFrom = chartRange?.from ?? cutoff;
+  const effectiveTo = cutoffTo;
+
   function filterMetrics(data: typeof specMetrics) {
     return data.filter(
-      (m) => (!cutoff || m.reportDate >= cutoff) && (!cutoffTo || m.reportDate <= cutoffTo),
+      (m) => (!effectiveFrom || m.reportDate >= effectiveFrom) && (!effectiveTo || m.reportDate <= effectiveTo),
     );
   }
 
@@ -200,7 +208,7 @@ export function ContractDashboard({ contract, group, records, priceCandles }: Co
                 value={customFrom}
                 min={COT_DATA_START}
                 max={customTo || latest.reportDate}
-                onChange={(e) => setCustomFrom(e.target.value)}
+                onChange={(e) => { setChartRange(null); setCustomFrom(e.target.value); }}
                 className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-sm text-slate-900 transition-colors focus:border-cyan-400 focus:outline-none dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:focus:border-cyan-300"
               />
               <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">to</span>
@@ -209,7 +217,7 @@ export function ContractDashboard({ contract, group, records, priceCandles }: Co
                 value={customTo}
                 min={customFrom || COT_DATA_START}
                 max={latest.reportDate}
-                onChange={(e) => setCustomTo(e.target.value)}
+                onChange={(e) => { setChartRange(null); setCustomTo(e.target.value); }}
                 className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-sm text-slate-900 transition-colors focus:border-cyan-400 focus:outline-none dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:focus:border-cyan-300"
               />
               {customFrom && customTo && (
@@ -223,7 +231,16 @@ export function ContractDashboard({ contract, group, records, priceCandles }: Co
 
         {/* Price chart */}
         <section className="mt-6 min-w-0">
-          <PriceChart candles={priceCandles} from={cutoff} to={cutoffTo} height={520} />
+          <PriceChart
+            candles={priceCandles}
+            from={cutoff}
+            to={cutoffTo}
+            height={520}
+            onRangeChange={(from, to) => {
+              if (rangeDebounceRef.current) clearTimeout(rangeDebounceRef.current);
+              rangeDebounceRef.current = setTimeout(() => setChartRange({ from, to }), 80);
+            }}
+          />
         </section>
 
         {/* Net contracts chart */}
@@ -237,7 +254,21 @@ export function ContractDashboard({ contract, group, records, priceCandles }: Co
               Positive = net long contracts · Negative = net short contracts
             </p>
           </div>
-          <NetPositionChart data={filterMetrics(metrics)} />
+          <NetPositionChart data={filterMetrics(metrics)} from={effectiveFrom} to={effectiveTo} />
+        </section>
+
+        {/* % OI panel */}
+        <section className="mt-6 min-w-0">
+          <PctOiChart
+            specData={filterMetrics(specMetrics)}
+            largeSpecData={filterMetrics(largeSpecMetrics)}
+            commData={filterMetrics(commMetrics)}
+            specLabel={specLabel}
+            largeSpecLabel={largeSpecLabel}
+            commLabel={commLabel}
+            from={effectiveFrom}
+            to={effectiveTo}
+          />
         </section>
 
         {/* COT Index panels */}
@@ -302,9 +333,9 @@ export function ContractDashboard({ contract, group, records, priceCandles }: Co
           </div>
 
           <div className="grid gap-4">
-            <CotIndexChart data={visibleLargeSpecMetrics} label={largeSpecLabel} color="#3b82f6" />
-            <CotIndexChart data={visibleSpecMetrics} label={specLabel} color="#a855f7" />
-            <CotIndexChart data={visibleCommMetrics} label={commLabel} color="#f59e0b" />
+            <CotIndexChart data={visibleLargeSpecMetrics} label={largeSpecLabel} color="#3b82f6" from={effectiveFrom} to={effectiveTo} />
+            <CotIndexChart data={visibleSpecMetrics} label={specLabel} color="#a855f7" from={effectiveFrom} to={effectiveTo} />
+            <CotIndexChart data={visibleCommMetrics} label={commLabel} color="#f59e0b" from={effectiveFrom} to={effectiveTo} />
           </div>
         </section>
 

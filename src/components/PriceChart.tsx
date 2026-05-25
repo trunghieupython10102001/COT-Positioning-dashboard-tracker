@@ -13,6 +13,7 @@ type PriceChartProps = {
   from?: string;
   to?: string;
   height?: number;
+  onRangeChange?: (from: string, to: string) => void;
 };
 
 const LIGHT = {
@@ -39,10 +40,12 @@ const DARK = {
   down: "#ef4444",
 };
 
-export function PriceChart({ candles, from, to, height = 520 }: PriceChartProps) {
+export function PriceChart({ candles, from, to, height = 520, onRangeChange }: PriceChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<SeriesType> | null>(null);
+  const onRangeChangeRef = useRef(onRangeChange);
+  onRangeChangeRef.current = onRangeChange;
   const { resolvedTheme } = useTheme();
   const [chartType, setChartType] = useState<ChartType>("area");
 
@@ -78,6 +81,16 @@ export function PriceChart({ candles, from, to, height = 520 }: PriceChartProps)
     });
 
     chartRef.current = chart;
+
+    chart.timeScale().subscribeVisibleTimeRangeChange((range) => {
+      if (range && onRangeChangeRef.current) {
+        const toDateStr = (t: unknown): string => {
+          if (typeof t === "number") return new Date(t * 1000).toISOString().slice(0, 10);
+          return String(t);
+        };
+        onRangeChangeRef.current(toDateStr(range.from), toDateStr(range.to));
+      }
+    });
 
     const ro = new ResizeObserver((entries) => {
       const width = entries[0]?.contentRect.width;
