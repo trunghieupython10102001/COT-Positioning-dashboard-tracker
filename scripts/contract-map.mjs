@@ -123,7 +123,10 @@ export const contracts = [
   {
     key: "new-zealand-dollar",
     reportType: "financial",
-    names: ["NEW ZEALAND DOLLAR - CHICAGO MERCANTILE EXCHANGE"],
+    names: [
+      "NEW ZEALAND DOLLAR - CHICAGO MERCANTILE EXCHANGE",
+      "NZ DOLLAR - CHICAGO MERCANTILE EXCHANGE",
+    ],
     yahooFinanceSymbol: "NZDUSD=X",
   },
   {
