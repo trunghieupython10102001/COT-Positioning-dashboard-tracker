@@ -1,4 +1,5 @@
-import generatedRecords from "@/generated/cot-records.json";
+import path from "node:path";
+import { getDataDir } from "./data-dir";
 
 export type TraderGroup = "speculators" | "large-speculators" | "commercials" | "all";
 
@@ -74,23 +75,39 @@ export const seedCotRecords: CotRecord[] = Object.entries(seeds).flatMap(
     }),
 );
 
-export const cotRecords: CotRecord[] =
-  generatedRecords.length > 0 ? (generatedRecords as CotRecord[]) : seedCotRecords;
+function readGeneratedCotRecords(): CotRecord[] {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { readFileSync } = require("node:fs") as typeof import("node:fs");
+    const filePath = path.join(getDataDir(), "cot-records.json");
+    const parsed = JSON.parse(readFileSync(filePath, "utf-8"));
+    return Array.isArray(parsed) ? (parsed as CotRecord[]) : [];
+  } catch {
+    return [];
+  }
+}
 
-export const isUsingGeneratedCotData = generatedRecords.length > 0;
+export function getAllCotRecords(): CotRecord[] {
+  const generated = readGeneratedCotRecords();
+  return generated.length > 0 ? generated : seedCotRecords;
+}
+
+export function isUsingGeneratedCotData(): boolean {
+  return readGeneratedCotRecords().length > 0;
+}
 
 export function getContractRecords(contractKey: string) {
-  return cotRecords
+  return getAllCotRecords()
     .filter((record) => record.contractKey === contractKey)
     .sort((a, b) => a.reportDate.localeCompare(b.reportDate));
 }
 
 export function hasCotRecords(contractKey: string) {
-  return cotRecords.some((record) => record.contractKey === contractKey);
+  return getAllCotRecords().some((record) => record.contractKey === contractKey);
 }
 
 export function latestReportDate() {
-  return cotRecords.reduce(
+  return getAllCotRecords().reduce(
     (latest, record) => (record.reportDate > latest ? record.reportDate : latest),
     "",
   );

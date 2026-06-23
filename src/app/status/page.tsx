@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { contracts } from "@/lib/contracts";
-import { cotRecords, isUsingGeneratedCotData, latestReportDate } from "@/lib/cot-data";
+import { getAllCotRecords, isUsingGeneratedCotData, latestReportDate } from "@/lib/cot-data";
 
 export default function StatusPage() {
   return (
@@ -11,7 +11,7 @@ export default function StatusPage() {
         </Link>
         <h1 className="mt-6 text-4xl font-semibold tracking-tight text-slate-900 dark:text-white">Data Status</h1>
         <p className="mt-3 text-slate-500 dark:text-slate-300">
-          {isUsingGeneratedCotData
+          {isUsingGeneratedCotData()
             ? "The dashboard is using normalized records generated from official CFTC files."
             : "The dashboard is using seed COT data because no generated CFTC records are available yet."}
         </p>
@@ -19,9 +19,9 @@ export default function StatusPage() {
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {[
             ["Latest report", latestReportDate()],
-            ["COT rows", cotRecords.length.toString()],
+            ["COT rows", getAllCotRecords().length.toString()],
             ["Mapped contracts", contracts.length.toString()],
-            ["Data mode", isUsingGeneratedCotData ? "Generated CFTC" : "Seed fallback"],
+            ["Data mode", isUsingGeneratedCotData() ? "Generated CFTC" : "Seed fallback"],
           ].map(([label, value]) => (
             <div key={label} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-colors duration-300 dark:border-white/10 dark:bg-slate-900/80">
               <p className="text-sm text-slate-400 dark:text-slate-400">{label}</p>

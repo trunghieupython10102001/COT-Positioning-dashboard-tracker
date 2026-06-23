@@ -12,7 +12,7 @@ type ContractPageProps = {
 
 export function generateStaticParams() {
   return contracts
-    .filter((contract) => !isUsingGeneratedCotData || hasCotRecords(contract.key))
+    .filter((contract) => !isUsingGeneratedCotData() || hasCotRecords(contract.key))
     .map((contract) => ({ key: contract.key }));
 }
 
