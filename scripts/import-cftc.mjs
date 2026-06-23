@@ -359,7 +359,7 @@ async function normalizeFiles(outputDir) {
       : a.contractKey.localeCompare(b.contractKey),
   );
 
-  const generatedDir = path.join(process.cwd(), "src", "generated");
+  const generatedDir = process.env.DATA_DIR ?? path.join(process.cwd(), "src", "generated");
   await mkdir(generatedDir, { recursive: true });
   await writeFile(path.join(generatedDir, "cot-records.json"), `${JSON.stringify(deduped, null, 2)}\n`);
   console.log(`Normalized ${deduped.length} COT records to src/generated/cot-records.json`);
