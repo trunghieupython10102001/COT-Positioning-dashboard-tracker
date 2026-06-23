@@ -1,11 +1,7 @@
 name: Update COT Data
 
 on:
-  # CFTC publishes new COT reports every Friday ~3:30 PM ET (21:30 UTC).
-  # Run at 22:00 UTC Friday to give the CFTC server time to publish.
-  schedule:
-    - cron: "0 22 * * 5"
-  # Also allow manual runs from the Actions tab.
+  # Data refresh now runs on EC2 (PM2 cron). Manual-only fallback kept.
   workflow_dispatch:
 
 jobs:
