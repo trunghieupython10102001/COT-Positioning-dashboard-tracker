@@ -1,3 +1,5 @@
+export const revalidate = 3600;
+
 import { notFound } from "next/navigation";
 import { ContractDashboard } from "@/components/ContractDashboard";
 import { buildMetrics } from "@/lib/analytics";
@@ -12,7 +14,7 @@ type ContractPageProps = {
 
 export function generateStaticParams() {
   return contracts
-    .filter((contract) => !isUsingGeneratedCotData || hasCotRecords(contract.key))
+    .filter((contract) => !isUsingGeneratedCotData() || hasCotRecords(contract.key))
     .map((contract) => ({ key: contract.key }));
 }
 

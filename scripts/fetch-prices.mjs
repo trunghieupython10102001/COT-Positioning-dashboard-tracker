@@ -55,7 +55,8 @@ async function fetchCandles(symbol) {
 }
 
 async function main() {
-  const outputDir = path.join(process.cwd(), "src", "generated", "price-data");
+  const baseDir = process.env.DATA_DIR ?? path.join(process.cwd(), "src", "generated");
+  const outputDir = path.join(baseDir, "price-data");
   await mkdir(outputDir, { recursive: true });
 
   for (const contract of contracts) {

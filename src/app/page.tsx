@@ -1,3 +1,5 @@
+export const revalidate = 3600;
+
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { formatNumber, formatPct, latestMetric } from "@/lib/analytics";
@@ -75,7 +77,7 @@ export default function Home() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Positioning Watchlist</h2>
-              {isUsingGeneratedCotData ? (
+              {isUsingGeneratedCotData() ? (
                 <p className="mt-1 text-sm text-slate-400 dark:text-slate-400">
                   Showing contracts found in the imported weekly CFTC files.
                 </p>
