@@ -1,3 +1,5 @@
+export const revalidate = 3600;
+
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { formatNumber, formatPct, latestMetric } from "@/lib/analytics";

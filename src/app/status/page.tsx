@@ -1,3 +1,6 @@
+export const revalidate = 3600;
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { contracts } from "@/lib/contracts";
 import { getAllCotRecords, isUsingGeneratedCotData, latestReportDate } from "@/lib/cot-data";

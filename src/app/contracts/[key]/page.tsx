@@ -1,3 +1,5 @@
+export const revalidate = 3600;
+
 import { notFound } from "next/navigation";
 import { ContractDashboard } from "@/components/ContractDashboard";
 import { buildMetrics } from "@/lib/analytics";
