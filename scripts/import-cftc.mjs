@@ -10,20 +10,77 @@ const currentYear = new Date().getFullYear();
 const startYear = Number(process.env.CFTC_START_YEAR ?? 2009);
 const endYear = Number(process.env.CFTC_END_YEAR ?? currentYear);
 
+// Every report is the Futures Only variant. `columns` lists the leading header
+// names in file order; the live weekly flat files ship without a header row, so
+// their values are mapped onto these names positionally.
 const sources = [
   {
-    name: "disaggregated-futures-only",
-    historicalPrefix: "fut_disagg_txt",
-    urls: [
-      "https://www.cftc.gov/dea/newcot/f_disagg.txt",
+    name: "legacy-futures-only",
+    report: "L",
+    historicalFile: (year) => `deacot${year}.zip`,
+    urls: ["https://www.cftc.gov/dea/newcot/deafut.txt"],
+    columns: [
+      "Market and Exchange Names", "As of Date in Form YYMMDD", "As of Date in Form YYYY-MM-DD",
+      "CFTC Contract Market Code", "CFTC Market Code in Initials", "CFTC Region Code", "CFTC Commodity Code",
+      "Open Interest (All)",
+      "Noncommercial Positions-Long (All)", "Noncommercial Positions-Short (All)", "Noncommercial Positions-Spreading (All)",
+      "Commercial Positions-Long (All)", "Commercial Positions-Short (All)",
+      "Total Reportable Positions-Long (All)", "Total Reportable Positions-Short (All)",
+      "Nonreportable Positions-Long (All)", "Nonreportable Positions-Short (All)",
     ],
+    groups: {
+      nc: ["Noncommercial Positions-Long (All)", "Noncommercial Positions-Short (All)"],
+      comm: ["Commercial Positions-Long (All)", "Commercial Positions-Short (All)"],
+      nonrept: ["Nonreportable Positions-Long (All)", "Nonreportable Positions-Short (All)"],
+    },
+  },
+  {
+    name: "disaggregated-futures-only",
+    report: "D",
+    historicalFile: (year) => `fut_disagg_txt_${year}.zip`,
+    urls: ["https://www.cftc.gov/dea/newcot/f_disagg.txt"],
+    columns: [
+      "Market_and_Exchange_Names", "As_of_Date_In_Form_YYMMDD", "Report_Date_as_YYYY-MM-DD",
+      "CFTC_Contract_Market_Code", "CFTC_Market_Code", "CFTC_Region_Code", "CFTC_Commodity_Code",
+      "Open_Interest_All",
+      "Prod_Merc_Positions_Long_All", "Prod_Merc_Positions_Short_All",
+      "Swap_Positions_Long_All", "Swap__Positions_Short_All", "Swap__Positions_Spread_All",
+      "M_Money_Positions_Long_All", "M_Money_Positions_Short_All", "M_Money_Positions_Spread_All",
+      "Other_Rept_Positions_Long_All", "Other_Rept_Positions_Short_All", "Other_Rept_Positions_Spread_All",
+      "Tot_Rept_Positions_Long_All", "Tot_Rept_Positions_Short_All",
+      "NonRept_Positions_Long_All", "NonRept_Positions_Short_All",
+    ],
+    groups: {
+      pm: ["Prod_Merc_Positions_Long_All", "Prod_Merc_Positions_Short_All"],
+      swap: ["Swap_Positions_Long_All", "Swap__Positions_Short_All"],
+      mm: ["M_Money_Positions_Long_All", "M_Money_Positions_Short_All"],
+      other: ["Other_Rept_Positions_Long_All", "Other_Rept_Positions_Short_All"],
+      nonrept: ["NonRept_Positions_Long_All", "NonRept_Positions_Short_All"],
+    },
   },
   {
     name: "financial-futures-only",
-    historicalPrefix: "fut_fin_txt",
-    urls: [
-      "https://www.cftc.gov/dea/newcot/FinFutWk.txt",
+    report: "F",
+    historicalFile: (year) => `fut_fin_txt_${year}.zip`,
+    urls: ["https://www.cftc.gov/dea/newcot/FinFutWk.txt"],
+    columns: [
+      "Market_and_Exchange_Names", "As_of_Date_In_Form_YYMMDD", "Report_Date_as_YYYY-MM-DD",
+      "CFTC_Contract_Market_Code", "CFTC_Market_Code", "CFTC_Region_Code", "CFTC_Commodity_Code",
+      "Open_Interest_All",
+      "Dealer_Positions_Long_All", "Dealer_Positions_Short_All", "Dealer_Positions_Spread_All",
+      "Asset_Mgr_Positions_Long_All", "Asset_Mgr_Positions_Short_All", "Asset_Mgr_Positions_Spread_All",
+      "Lev_Money_Positions_Long_All", "Lev_Money_Positions_Short_All", "Lev_Money_Positions_Spread_All",
+      "Other_Rept_Positions_Long_All", "Other_Rept_Positions_Short_All", "Other_Rept_Positions_Spread_All",
+      "Tot_Rept_Positions_Long_All", "Tot_Rept_Positions_Short_All",
+      "NonRept_Positions_Long_All", "NonRept_Positions_Short_All",
     ],
+    groups: {
+      dealer: ["Dealer_Positions_Long_All", "Dealer_Positions_Short_All"],
+      am: ["Asset_Mgr_Positions_Long_All", "Asset_Mgr_Positions_Short_All"],
+      lev: ["Lev_Money_Positions_Long_All", "Lev_Money_Positions_Short_All"],
+      other: ["Other_Rept_Positions_Long_All", "Other_Rept_Positions_Short_All"],
+      nonrept: ["NonRept_Positions_Long_All", "NonRept_Positions_Short_All"],
+    },
   },
 ];
 
@@ -89,13 +146,13 @@ async function main() {
 async function downloadHistoricalFiles(outputDir) {
   for (const source of sources) {
     for (let year = startYear; year <= endYear; year += 1) {
-      const outputFile = path.join(outputDir, `${source.historicalPrefix}_${year}.zip`);
+      const outputFile = path.join(outputDir, source.historicalFile(year));
 
       // Completed years are immutable — skip if already cached.
       // The current year is updated weekly, so always refresh it.
       if (year < currentYear && await fileExists(outputFile)) continue;
 
-      const url = `https://www.cftc.gov/files/dea/history/${source.historicalPrefix}_${year}.zip`;
+      const url = `https://www.cftc.gov/files/dea/history/${source.historicalFile(year)}`;
       try {
         await downloadWithCurl(url, outputFile);
         console.log(`${year < currentYear ? "Cached" : "Updated"} ${source.name} ${year}`);
@@ -126,12 +183,9 @@ async function deleteIfExists(filePath) {
 
 async function findRawFiles(outputDir, source) {
   const files = await readdir(outputDir);
+  const historical = new Set(Array.from({ length: endYear - startYear + 1 }, (_, i) => source.historicalFile(startYear + i)));
   return files
-    .filter(
-      (file) =>
-        file === `${source.name}.txt` ||
-        file.startsWith(`${source.historicalPrefix}_`) && (file.endsWith(".zip") || file.endsWith(".txt")),
-    )
+    .filter((file) => file === `${source.name}.txt` || historical.has(file))
     .map((file) => path.join(outputDir, file));
 }
 
@@ -144,20 +198,16 @@ function readZipText(file) {
   return entry ? entry.getData().toString("utf8") : "";
 }
 
-function parseDelimited(text) {
+function parseDelimited(text, positionalColumns) {
   const lines = text.split(/\r?\n/).filter(Boolean);
-  if (lines.length < 2) return [];
+  if (lines.length === 0) return [];
 
   const delimiter = lines[0].includes("\t") ? "\t" : ",";
   const firstValues = splitLine(lines[0], delimiter);
+  const hasHeader = !/^\d+$/.test(firstValues[1] ?? "");
+  const headers = (hasHeader ? firstValues : positionalColumns).map(normalizeHeader);
 
-  if (/^\d+$/.test(firstValues[1] ?? "")) {
-    return lines.map((line) => splitLine(line, delimiter));
-  }
-
-  const headers = splitLine(lines[0], delimiter).map(normalizeHeader);
-
-  return lines.slice(1).map((line) => {
+  return lines.slice(hasHeader ? 1 : 0).map((line) => {
     const values = splitLine(line, delimiter);
     return Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ""]));
   });
@@ -187,173 +237,74 @@ function normalizeHeader(header) {
   return header.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
 }
 
-function numberValue(row, candidates) {
-  for (const candidate of candidates) {
-    const value = row[normalizeHeader(candidate)];
-    if (value !== undefined && value !== "") return Number(value.replace(/,/g, ""));
-  }
-
-  return 0;
+function numberValue(row, header) {
+  const value = row[normalizeHeader(header)];
+  return value ? Number(value.replace(/,/g, "")) || 0 : 0;
 }
 
-function textValue(row, candidates) {
-  if (Array.isArray(row)) return "";
+function dateValue(row) {
+  const value = [
+    "Report_Date_as_YYYY-MM-DD",
+    "As of Date in Form YYYY-MM-DD",
+    "Report_Date_as_MM_DD_YYYY",
+    "As_of_Date_In_Form_YYMMDD",
+  ]
+    .map((header) => row[normalizeHeader(header)])
+    .find(Boolean) ?? "";
 
-  for (const candidate of candidates) {
-    const value = row[normalizeHeader(candidate)];
-    if (value) return value;
+  const datePart = value.split(" ")[0];
+  if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return datePart;
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(datePart)) {
+    const [month, day, year] = datePart.split("/");
+    return `${year}-${month}-${day}`;
+  }
+  if (/^\d{6}$/.test(datePart)) {
+    return `20${datePart.slice(0, 2)}-${datePart.slice(2, 4)}-${datePart.slice(4, 6)}`;
   }
 
   return "";
 }
 
-function dateValue(row) {
-  if (Array.isArray(row)) return row[2] ?? "";
-
-  const value = textValue(row, ["Report_Date_as_YYYY-MM-DD", "Report_Date_as_MM_DD_YYYY", "As_of_Date_In_Form_YYMMDD"]);
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
-    const [month, day, year] = value.split("/");
-    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-  }
-  if (/^\d{6}$/.test(value)) {
-    return `20${value.slice(0, 2)}-${value.slice(2, 4)}-${value.slice(4, 6)}`;
-  }
-
-  return value;
-}
-
-function normalizeRecord(row, contract) {
-  if (Array.isArray(row)) return normalizePositionalRecord(row, contract);
-
-  const common = {
-    contractKey: contract.key,
-    reportDate: dateValue(row),
-    openInterest: numberValue(row, ["Open_Interest_All", "Open Interest"]),
-    nonReportableLong: numberValue(row, ["NonRept_Positions_Long_All", "Nonreportable Positions-Long (All)"]),
-    nonReportableShort: numberValue(row, ["NonRept_Positions_Short_All", "Nonreportable Positions-Short (All)"]),
-  };
-
-  if (contract.reportType === "financial") {
-    return {
-      ...common,
-      specLong: numberValue(row, ["Lev_Money_Positions_Long_All", "Leveraged Funds-Long (All)"]),
-      specShort: numberValue(row, ["Lev_Money_Positions_Short_All", "Leveraged Funds-Short (All)"]),
-      otherReptLong: numberValue(row, ["Other_Rept_Positions_Long_All", "Other Reportables-Long (All)"]),
-      otherReptShort: numberValue(row, ["Other_Rept_Positions_Short_All", "Other Reportables-Short (All)"]),
-      commercialLong: numberValue(row, ["Dealer_Positions_Long_All", "Dealer/Intermediary-Long (All)"]),
-      commercialShort: numberValue(row, ["Dealer_Positions_Short_All", "Dealer/Intermediary-Short (All)"]),
-    };
-  }
-
-  return {
-    ...common,
-    specLong: numberValue(row, ["M_Money_Positions_Long_All", "Managed Money-Long (All)"]),
-    specShort: numberValue(row, ["M_Money_Positions_Short_All", "Managed Money-Short (All)"]),
-    otherReptLong: numberValue(row, ["Other_Rept_Positions_Long_All", "Other Reportables-Long (All)"]),
-    otherReptShort: numberValue(row, ["Other_Rept_Positions_Short_All", "Other Reportables-Short (All)"]),
-    commercialLong: numberValue(row, ["Prod_Merc_Positions_Long_All", "Producer/Merchant/Processor/User-Long (All)"]),
-    commercialShort: numberValue(row, ["Prod_Merc_Positions_Short_All", "Producer/Merchant/Processor/User-Short (All)"]),
-  };
-}
-
-function numericField(row, index) {
-  return Number((row[index] ?? "0").replace(/,/g, "").trim()) || 0;
-}
-
-function normalizePositionalRecord(row, contract) {
-  if (contract.reportType === "financial") {
-    return {
-      contractKey: contract.key,
-      reportDate: row[2] ?? "",
-      openInterest: numericField(row, 7),
-      specLong: numericField(row, 14),
-      specShort: numericField(row, 15),
-      otherReptLong: numericField(row, 17),
-      otherReptShort: numericField(row, 18),
-      commercialLong: numericField(row, 8),
-      commercialShort: numericField(row, 9),
-      nonReportableLong: numericField(row, 22),
-      nonReportableShort: numericField(row, 23),
-    };
-  }
-
-  const specLong = numericField(row, 13);
-  const specShort = numericField(row, 14);
-  const otherReptLong = numericField(row, 16);
-  const otherReptShort = numericField(row, 17);
-  const shouldUseOtherReptAsSpecProxy =
-    contract.key === "wti-crude-oil" &&
-    specLong === 0 &&
-    specShort === 0 &&
-    (otherReptLong !== 0 || otherReptShort !== 0);
-
-  return {
-    contractKey: contract.key,
-    reportDate: row[2] ?? "",
-    openInterest: numericField(row, 7),
-    specLong: shouldUseOtherReptAsSpecProxy ? otherReptLong : specLong,
-    specShort: shouldUseOtherReptAsSpecProxy ? otherReptShort : specShort,
-    otherReptLong,
-    otherReptShort,
-    commercialLong: numericField(row, 8),
-    commercialShort: numericField(row, 9),
-    nonReportableLong: numericField(row, 21),
-    nonReportableShort: numericField(row, 22),
-  };
-}
-
 async function normalizeFiles(outputDir) {
-  const normalized = [];
+  const contractByCode = new Map(contracts.map((contract) => [contract.cftcCode, contract]));
+  // One record per contract + report date, with long/short per trader group
+  // from every report that covers it, keyed `${report}.${group}`.
+  const byContractDate = new Map();
 
   for (const source of sources) {
     const files = await findRawFiles(outputDir, source);
-    if (files.length === 0) continue;
-
-    const reportType = source.name.includes("financial") ? "financial" : "disaggregated";
-    const reportContracts = contracts.filter((contract) => contract.reportType === reportType);
 
     for (const file of files) {
       const text = file.endsWith(".zip") ? readZipText(file) : await readFile(file, "utf8");
-      const rows = parseDelimited(text);
 
-      for (const row of rows) {
-        const marketName = Array.isArray(row)
-          ? row[0]
-          : textValue(row, ["Market_and_Exchange_Names", "Market and Exchange Names"]);
-        const contract = reportContracts.find((item) => item.names.includes(marketName));
+      for (const row of parseDelimited(text, source.columns)) {
+        const code = (row.cftc_contract_market_code ?? "").trim();
+        const contract = contractByCode.get(code);
         if (!contract) continue;
 
-        const record = normalizeRecord(row, contract);
-        if (
-          record.contractKey === "wti-crude-oil" &&
-          record.specLong === 0 &&
-          record.specShort === 0 &&
-          (record.otherReptLong !== 0 || record.otherReptShort !== 0)
-        ) {
-          record.specLong = record.otherReptLong;
-          record.specShort = record.otherReptShort;
+        const reportDate = dateValue(row);
+        const openInterest = numberValue(row, "Open_Interest_All");
+        if (!reportDate || openInterest <= 0) continue;
+
+        const key = `${contract.key}:${reportDate}`;
+        const record = byContractDate.get(key) ?? { contractKey: contract.key, reportDate, openInterest, positions: {} };
+        // The live flat file and the current-year zip overlap; the first copy wins.
+        if (record.positions[`${source.report}.${Object.keys(source.groups)[0]}`]) continue;
+
+        // Legacy and Disaggregated/TFF futures-only open interest are identical;
+        // prefer the contract's own report when both are present.
+        if (source.report !== "L") record.openInterest = openInterest;
+        for (const [group, [longHeader, shortHeader]] of Object.entries(source.groups)) {
+          record.positions[`${source.report}.${group}`] = [numberValue(row, longHeader), numberValue(row, shortHeader)];
         }
-        if (record.reportDate && record.openInterest > 0) normalized.push(record);
+        byContractDate.set(key, record);
       }
     }
   }
 
-  const byContractDate = new Map();
-  for (const record of normalized) {
-    const key = `${record.contractKey}:${record.reportDate}`;
-    const existing = byContractDate.get(key);
-    const recordHasSpec = record.specLong !== 0 || record.specShort !== 0;
-    const existingHasSpec = existing && (existing.specLong !== 0 || existing.specShort !== 0);
+  const records = Array.from(byContractDate.values());
 
-    if (!existing || (recordHasSpec && !existingHasSpec)) {
-      byContractDate.set(key, record);
-    }
-  }
-
-  const deduped = Array.from(byContractDate.values());
-
-  deduped.sort((a, b) =>
+  records.sort((a, b) =>
     a.contractKey === b.contractKey
       ? a.reportDate.localeCompare(b.reportDate)
       : a.contractKey.localeCompare(b.contractKey),
@@ -361,8 +312,8 @@ async function normalizeFiles(outputDir) {
 
   const generatedDir = process.env.DATA_DIR ?? path.join(process.cwd(), "src", "generated");
   await mkdir(generatedDir, { recursive: true });
-  await writeFile(path.join(generatedDir, "cot-records.json"), `${JSON.stringify(deduped, null, 2)}\n`);
-  console.log(`Normalized ${deduped.length} COT records to src/generated/cot-records.json`);
+  await writeFile(path.join(generatedDir, "cot-records.json"), `${JSON.stringify(records)}\n`);
+  console.log(`Normalized ${records.length} COT records to ${path.join(generatedDir, "cot-records.json")}`);
 }
 
 main().catch((error) => {

@@ -1,138 +1,112 @@
+// Contracts are matched by CFTC contract market code, which survives the market
+// renames CFTC applies over the years (e.g. "CRUDE OIL, LIGHT SWEET" -> "WTI-PHYSICAL").
 export const contracts = [
   {
     key: "gold",
+    cftcCode: "088691",
     reportType: "disaggregated",
-    names: ["GOLD - COMMODITY EXCHANGE INC."],
     yahooFinanceSymbol: "GC=F",
   },
   {
     key: "silver",
+    cftcCode: "084691",
     reportType: "disaggregated",
-    names: ["SILVER - COMMODITY EXCHANGE INC."],
     yahooFinanceSymbol: "SI=F",
   },
   {
     key: "copper",
+    cftcCode: "085692",
     reportType: "disaggregated",
-    names: [
-      "COPPER-GRADE #1 - COMMODITY EXCHANGE INC.",
-      "COPPER- #1 - COMMODITY EXCHANGE INC.",
-    ],
     yahooFinanceSymbol: "HG=F",
   },
   {
     key: "platinum",
+    cftcCode: "076651",
     reportType: "disaggregated",
-    names: ["PLATINUM - NEW YORK MERCANTILE EXCHANGE"],
     yahooFinanceSymbol: "PL=F",
   },
   {
     key: "palladium",
+    cftcCode: "075651",
     reportType: "disaggregated",
-    names: ["PALLADIUM - NEW YORK MERCANTILE EXCHANGE"],
     yahooFinanceSymbol: "PA=F",
   },
   {
     key: "wti-crude-oil",
+    cftcCode: "067651",
     reportType: "disaggregated",
-    names: [
-      "CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE",
-      "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE",
-      "WTI FINANCIAL CRUDE OIL - NEW YORK MERCANTILE EXCHANGE",
-    ],
     yahooFinanceSymbol: "CL=F",
   },
   {
     key: "brent-crude-oil",
+    cftcCode: "06765T",
     reportType: "disaggregated",
-    names: [
-      "BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE",
-      "BRENT LAST DAY - NEW YORK MERCANTILE EXCHANGE",
-      "CRUDE OIL, LIGHT SWEET-WTI - ICE FUTURES EUROPE",
-    ],
     yahooFinanceSymbol: "BZ=F",
   },
   {
     key: "natural-gas",
+    cftcCode: "023651",
     reportType: "disaggregated",
-    names: [
-      "NATURAL GAS - NEW YORK MERCANTILE EXCHANGE",
-      "NAT GAS NYME - NEW YORK MERCANTILE EXCHANGE",
-    ],
     yahooFinanceSymbol: "NG=F",
   },
   {
     key: "rbob-gasoline",
+    cftcCode: "111659",
     reportType: "disaggregated",
-    names: [
-      "GASOLINE BLENDSTOCK (RBOB) - NEW YORK MERCANTILE EXCHANGE",
-      "GASOLINE BLENDSTOCK (RBOB)  - NEW YORK MERCANTILE EXCHANGE",
-      "GASOLINE RBOB - NEW YORK MERCANTILE EXCHANGE",
-    ],
     yahooFinanceSymbol: "RB=F",
   },
   {
     key: "heating-oil",
+    cftcCode: "022651",
     reportType: "disaggregated",
-    names: [
-      "#2 HEATING OIL, NY HARBOR-ULSD - NEW YORK MERCANTILE EXCHANGE",
-      "#2 HEATING OIL- NY HARBOR-ULSD - NEW YORK MERCANTILE EXCHANGE",
-      "NY HARBOR ULSD - NEW YORK MERCANTILE EXCHANGE",
-    ],
     yahooFinanceSymbol: "HO=F",
   },
   {
     key: "euro-fx",
+    cftcCode: "099741",
     reportType: "financial",
-    names: ["EURO FX - CHICAGO MERCANTILE EXCHANGE"],
     yahooFinanceSymbol: "EURUSD=X",
   },
   {
     key: "british-pound",
+    cftcCode: "096742",
     reportType: "financial",
-    names: [
-      "BRITISH POUND - CHICAGO MERCANTILE EXCHANGE",
-      "BRITISH POUND STERLING - CHICAGO MERCANTILE EXCHANGE",
-    ],
     yahooFinanceSymbol: "GBPUSD=X",
   },
   {
     key: "japanese-yen",
+    cftcCode: "097741",
     reportType: "financial",
-    names: ["JAPANESE YEN - CHICAGO MERCANTILE EXCHANGE"],
     yahooFinanceSymbol: "USDJPY=X",
   },
   {
     key: "australian-dollar",
+    cftcCode: "232741",
     reportType: "financial",
-    names: ["AUSTRALIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE"],
     yahooFinanceSymbol: "AUDUSD=X",
   },
   {
     key: "swiss-franc",
+    cftcCode: "092741",
     reportType: "financial",
-    names: ["SWISS FRANC - CHICAGO MERCANTILE EXCHANGE"],
     yahooFinanceSymbol: "USDCHF=X",
   },
   {
     key: "canadian-dollar",
+    cftcCode: "090741",
     reportType: "financial",
-    names: ["CANADIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE"],
     yahooFinanceSymbol: "USDCAD=X",
   },
   {
     key: "new-zealand-dollar",
+    cftcCode: "112741",
     reportType: "financial",
-    names: [
-      "NEW ZEALAND DOLLAR - CHICAGO MERCANTILE EXCHANGE",
-      "NZ DOLLAR - CHICAGO MERCANTILE EXCHANGE",
-    ],
     yahooFinanceSymbol: "NZDUSD=X",
   },
   {
     key: "mexican-peso",
+    cftcCode: "095741",
     reportType: "financial",
-    names: ["MEXICAN PESO - CHICAGO MERCANTILE EXCHANGE"],
     yahooFinanceSymbol: "USDMXN=X",
   },
 ];

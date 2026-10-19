@@ -49,7 +49,7 @@ export default function Home() {
               </h1>
               <p className="mt-5 max-w-3xl text-base leading-7 text-slate-500 dark:text-slate-300 sm:text-lg">
                 Track delayed weekly COT positioning beside live/current futures price charts.
-                Default signal is managed money for commodities and leveraged funds for FX.
+                Default signal is the CFTC Legacy non-commercial net position — switch to any CFTC trader group, or build your own, on each contract page.
               </p>
             </div>
             <div className="relative min-w-72 rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-sm dark:border-amber-300/20 dark:bg-amber-300/10">
@@ -113,7 +113,7 @@ export default function Home() {
                 <div className="mt-6 grid grid-cols-3 gap-3 text-sm">
                   <div className="rounded-2xl bg-slate-50 p-3 dark:bg-white/[0.03]">
                     <p className="text-xs text-slate-400 dark:text-slate-500">Net contracts</p>
-                    <p className="mt-1 font-mono font-semibold text-slate-900 dark:text-white">{formatNumber(metric!.specNet)}</p>
+                    <p className="mt-1 font-mono font-semibold text-slate-900 dark:text-white">{formatNumber(metric!.selectedNet)}</p>
                   </div>
                   <div className="rounded-2xl bg-slate-50 p-3 dark:bg-white/[0.03]">
                     <p className="text-xs text-slate-400 dark:text-slate-500">Net / OI</p>

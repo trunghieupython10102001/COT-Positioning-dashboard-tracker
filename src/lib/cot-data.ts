@@ -1,20 +1,16 @@
 import path from "node:path";
 import { getDataDir } from "./data-dir";
 
-export type TraderGroup = "speculators" | "large-speculators" | "commercials" | "all";
-
 export type CotRecord = {
   contractKey: string;
   reportDate: string;
   openInterest: number;
-  specLong: number;
-  specShort: number;
-  otherReptLong: number;
-  otherReptShort: number;
-  commercialLong: number;
-  commercialShort: number;
-  nonReportableLong: number;
-  nonReportableShort: number;
+  /**
+   * [long, short] per CFTC trader group, keyed `${report}.${group}` — e.g.
+   * `L.nc` (Legacy Non-Commercial), `D.mm` (Managed Money), `F.lev`
+   * (Leveraged Funds). See `REPORTS` in ./formulas for the full list.
+   */
+  positions: Record<string, [number, number]>;
 };
 
 const weeks = [
@@ -58,19 +54,27 @@ export const seedCotRecords: CotRecord[] = Object.entries(seeds).flatMap(
       const specNet = seed.spec + drift * 3500 + wave;
       const otherReptNet = seed.otherRept + drift * 400 + Math.round(wave * 0.15);
       const commercialNet = seed.commercial - drift * 3100 - Math.round(wave * 0.8);
+      const side = (share: number, net: number): [number, number] => [
+        Math.round(openInterest * share + Math.max(net, 0)),
+        Math.round(openInterest * share + Math.max(-net, 0)),
+      ];
+      const nonReportable = side(0.08, 0);
+      const report = ["euro-fx", "british-pound", "japanese-yen", "australian-dollar"].includes(contractKey) ? "F" : "D";
+      const [spec, comm] = report === "F" ? ["lev", "dealer"] : ["mm", "pm"];
 
       return {
         contractKey,
         reportDate,
         openInterest,
-        specLong: Math.round(openInterest * 0.34 + Math.max(specNet, 0)),
-        specShort: Math.round(openInterest * 0.34 + Math.max(-specNet, 0)),
-        otherReptLong: Math.round(openInterest * 0.05 + Math.max(otherReptNet, 0)),
-        otherReptShort: Math.round(openInterest * 0.05 + Math.max(-otherReptNet, 0)),
-        commercialLong: Math.round(openInterest * 0.38 + Math.max(commercialNet, 0)),
-        commercialShort: Math.round(openInterest * 0.38 + Math.max(-commercialNet, 0)),
-        nonReportableLong: Math.round(openInterest * 0.08),
-        nonReportableShort: Math.round(openInterest * 0.08),
+        positions: {
+          "L.nc": side(0.39, specNet + otherReptNet),
+          "L.comm": side(0.38, commercialNet),
+          "L.nonrept": nonReportable,
+          [`${report}.${spec}`]: side(0.34, specNet),
+          [`${report}.other`]: side(0.05, otherReptNet),
+          [`${report}.${comm}`]: side(0.38, commercialNet),
+          [`${report}.nonrept`]: nonReportable,
+        },
       };
     }),
 );

@@ -124,11 +124,12 @@ export function CotIndexChart({ data, label, color, thresholdLow = 10, threshold
 
 type NetPositionChartProps = {
   data: CotMetric[];
+  label: string;
   from?: string;
   to?: string;
 };
 
-export function NetPositionChart({ data, from, to }: NetPositionChartProps) {
+export function NetPositionChart({ data, label, from, to }: NetPositionChartProps) {
   const { resolvedTheme } = useTheme();
 
   const isDark = resolvedTheme !== "light";
@@ -170,25 +171,22 @@ export function NetPositionChart({ data, from, to }: NetPositionChartProps) {
             contentStyle={{ background: tooltipBg, border: `1px solid ${tooltipBorder}`, borderRadius: 16, color: tooltipFg }}
             labelFormatter={(ts) => new Date(ts as number).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}
           />
-          <Area dataKey="selectedNet" name="Net Contracts" stroke="#38bdf8" strokeWidth={2} fill="url(#net)" />
+          <Area dataKey="selectedNet" name={label} stroke="#38bdf8" strokeWidth={2} fill="url(#net)" />
         </AreaChart>
       </ResponsiveContainer>
     </div>
   );
 }
 
+type PctOiSeries = { label: string; color: string; data: CotMetric[] };
+
 type PctOiChartProps = {
-  specData: CotMetric[];
-  largeSpecData: CotMetric[];
-  commData: CotMetric[];
-  specLabel: string;
-  largeSpecLabel: string;
-  commLabel: string;
+  series: PctOiSeries[];
   from?: string;
   to?: string;
 };
 
-export function PctOiChart({ specData, largeSpecData, commData, specLabel, largeSpecLabel, commLabel, from, to }: PctOiChartProps) {
+export function PctOiChart({ series, from, to }: PctOiChartProps) {
   const { resolvedTheme } = useTheme();
 
   const isDark = resolvedTheme !== "light";
@@ -198,49 +196,32 @@ export function PctOiChart({ specData, largeSpecData, commData, specLabel, large
   const tooltipBorder = isDark ? "#334155" : "#e2e8f0";
   const tooltipFg = isDark ? "#f8fafc" : "#0f172a";
 
-  // Merge all three series onto a shared timestamp key
-  const tsMap = new Map<number, { _ts: number; spec?: number; largeSpec?: number; comm?: number }>();
-  for (const d of specData) {
-    const t = toMs(d.reportDate);
-    tsMap.set(t, { ...tsMap.get(t), _ts: t, spec: d.selectedNetPctOi });
-  }
-  for (const d of largeSpecData) {
-    const t = toMs(d.reportDate);
-    tsMap.set(t, { ...tsMap.get(t), _ts: t, largeSpec: d.selectedNetPctOi });
-  }
-  for (const d of commData) {
-    const t = toMs(d.reportDate);
-    tsMap.set(t, { ...tsMap.get(t), _ts: t, comm: d.selectedNetPctOi });
-  }
+  // Merge every series onto a shared timestamp key (s0, s1, …)
+  const tsMap = new Map<number, Record<string, number>>();
+  series.forEach((item, index) => {
+    for (const d of item.data) {
+      const t = toMs(d.reportDate);
+      tsMap.set(t, { ...tsMap.get(t), _ts: t, [`s${index}`]: d.selectedNetPctOi });
+    }
+  });
   const chartData = Array.from(tsMap.values()).sort((a, b) => a._ts - b._ts);
 
   const domainFrom = from ? toMs(from) : "dataMin";
   const domainTo = to ? toMs(to) : "dataMax";
-
-  const latestSpec = specData.at(-1);
-  const latestLargeSpec = largeSpecData.at(-1);
-  const latestComm = commData.at(-1);
 
   return (
     <div className="w-full min-w-0 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition-colors duration-300 dark:border-white/10 dark:bg-slate-950/80 dark:shadow-2xl dark:shadow-black/25">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">% Net / Open Interest</p>
         <div className="flex flex-wrap gap-2">
-          {latestLargeSpec && (
-            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300">
-              <span className="mr-1" style={{ color: "#3b82f6" }}>●</span>{largeSpecLabel.split(" ")[0]} <span className="font-mono" style={{ color: "#3b82f6" }}>{latestLargeSpec.selectedNetPctOi.toFixed(1)}%</span>
-            </span>
-          )}
-          {latestSpec && (
-            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300">
-              <span className="mr-1" style={{ color: "#a855f7" }}>●</span>{specLabel.split(" ")[0]} <span className="font-mono" style={{ color: "#a855f7" }}>{latestSpec.selectedNetPctOi.toFixed(1)}%</span>
-            </span>
-          )}
-          {latestComm && (
-            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300">
-              <span className="mr-1" style={{ color: "#f59e0b" }}>●</span>{commLabel.split(" ")[0]} <span className="font-mono" style={{ color: "#f59e0b" }}>{latestComm.selectedNetPctOi.toFixed(1)}%</span>
-            </span>
-          )}
+          {series.map((item) => {
+            const latest = item.data.at(-1);
+            return latest ? (
+              <span key={item.label} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300">
+                <span className="mr-1" style={{ color: item.color }}>●</span>{item.label} <span className="font-mono" style={{ color: item.color }}>{latest.selectedNetPctOi.toFixed(1)}%</span>
+              </span>
+            ) : null;
+          })}
         </div>
       </div>
       <div className="h-52">
@@ -273,9 +254,9 @@ export function PctOiChart({ specData, largeSpecData, commData, specLabel, large
               labelFormatter={(ts) => new Date(ts as number).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}
               formatter={(value: unknown, name) => [`${(value as number).toFixed(1)}%`, name ?? ""]}
             />
-            <Line dataKey="largeSpec" name={largeSpecLabel} stroke="#3b82f6" strokeWidth={1.5} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} connectNulls />
-            <Line dataKey="spec" name={specLabel} stroke="#a855f7" strokeWidth={1.5} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} connectNulls />
-            <Line dataKey="comm" name={commLabel} stroke="#f59e0b" strokeWidth={1.5} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} connectNulls />
+            {series.map((item, index) => (
+              <Line key={item.label} dataKey={`s${index}`} name={item.label} stroke={item.color} strokeWidth={1.5} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} connectNulls />
+            ))}
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -293,8 +274,8 @@ export function LongShortChart({ data }: { data: CotMetric[] }) {
           <YAxis stroke="#64748b" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
           <Tooltip contentStyle={{ background: "#020617", border: "1px solid #334155", borderRadius: 16, color: "#f8fafc" }} />
           <Legend wrapperStyle={{ color: "#cbd5e1" }} />
-          <Bar dataKey="specLong" name="Spec Long" fill="#22c55e" />
-          <Bar dataKey="specShort" name="Spec Short" fill="#ef4444" />
+          <Bar dataKey="netLong" name="Long" fill="#22c55e" />
+          <Bar dataKey="netShort" name="Short" fill="#ef4444" />
         </BarChart>
       </ResponsiveContainer>
     </div>

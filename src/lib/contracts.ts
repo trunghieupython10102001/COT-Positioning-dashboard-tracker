@@ -97,7 +97,6 @@ export const contracts: ContractConfig[] = [
     cftcMarketNames: [
       "BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE",
       "BRENT LAST DAY - NEW YORK MERCANTILE EXCHANGE",
-      "CRUDE OIL, LIGHT SWEET-WTI - ICE FUTURES EUROPE",
     ],
     tradingViewSymbol: "TVC:UKOIL",
     cotFuturesSymbol: "ICEEUR:BRN1!",

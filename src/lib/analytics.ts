@@ -1,9 +1,10 @@
-import { CotRecord, TraderGroup, getContractRecords } from "./cot-data";
+import { CotRecord, getContractRecords } from "./cot-data";
+import { getContract } from "./contracts";
+import { Formula, defaultFormulas } from "./formulas";
 
 export type CotMetric = CotRecord & {
-  specNet: number;
-  commercialNet: number;
-  nonReportableNet: number;
+  netLong: number;
+  netShort: number;
   selectedNet: number;
   selectedNetPctOi: number;
   weeklyChange: number;
@@ -36,38 +37,48 @@ function zScore(values: number[], value: number) {
   return deviation === 0 ? 0 : Number(((value - mean) / deviation).toFixed(2));
 }
 
-export function metricNet(record: CotRecord, group: Exclude<TraderGroup, "all">) {
-  if (group === "speculators") return record.specLong - record.specShort;
-  if (group === "large-speculators") {
-    return (record.specLong + record.otherReptLong) - (record.specShort + record.otherReptShort);
+/** Σ long and Σ short over the formula's groups, or undefined if the record lacks any of them. */
+export function formulaSides(record: CotRecord, formula: Formula): [number, number] | undefined {
+  let long = 0;
+  let short = 0;
+  for (const group of formula.groups) {
+    const position = record.positions?.[`${formula.report}.${group}`];
+    if (!position) return undefined;
+    long += position[0];
+    short += position[1];
   }
-  return record.commercialLong - record.commercialShort;
+  return [long, short];
 }
 
-export function buildMetrics(records: CotRecord[], group: Exclude<TraderGroup, "all">, lookbackWeeks: number = 156) {
-  return records.map((record, index) => {
-    const selectedNet = metricNet(record, group);
-    const prior = records[index - 1];
-    const priorNet = prior ? metricNet(prior, group) : selectedNet;
-    const window = records.slice(Math.max(index - (lookbackWeeks - 1), 0), index + 1).map((item) => metricNet(item, group));
+export function buildMetrics(records: CotRecord[], formula: Formula, lookbackWeeks: number = 156) {
+  // Weeks a report doesn't cover (e.g. Legacy-only 2009 rows for a TFF formula) are skipped.
+  const rows = records.flatMap((record) => {
+    const sides = formulaSides(record, formula);
+    return sides ? [{ record, sides, net: sides[0] - sides[1] }] : [];
+  });
+
+  return rows.map(({ record, sides, net }, index) => {
+    const priorNet = rows[index - 1]?.net ?? net;
+    const window = rows.slice(Math.max(index - (lookbackWeeks - 1), 0), index + 1).map((row) => row.net);
 
     return {
       ...record,
-      specNet: record.specLong - record.specShort,
-      commercialNet: record.commercialLong - record.commercialShort,
-      nonReportableNet: record.nonReportableLong - record.nonReportableShort,
-      selectedNet,
-      selectedNetPctOi: Number(((selectedNet / record.openInterest) * 100).toFixed(1)),
-      weeklyChange: selectedNet - priorNet,
-      cotIndex: cotIndex(window, selectedNet),
-      percentile: percentileRank(window, selectedNet),
-      zScore: zScore(window, selectedNet),
+      netLong: sides[0],
+      netShort: sides[1],
+      selectedNet: net,
+      selectedNetPctOi: Number(((net / record.openInterest) * 100).toFixed(1)),
+      weeklyChange: net - priorNet,
+      cotIndex: cotIndex(window, net),
+      percentile: percentileRank(window, net),
+      zScore: zScore(window, net),
     } satisfies CotMetric;
   });
 }
 
-export function latestMetric(contractKey: string, group: Exclude<TraderGroup, "all"> = "speculators") {
-  const metrics = buildMetrics(getContractRecords(contractKey), group);
+export function latestMetric(contractKey: string, formula?: Formula) {
+  const contract = getContract(contractKey);
+  if (!contract) return undefined;
+  const metrics = buildMetrics(getContractRecords(contractKey), formula ?? defaultFormulas(contract.reportType).speculators);
   return metrics.at(-1);
 }
 
